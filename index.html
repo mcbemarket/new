@@ -1,50 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Moved</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redirecting...</title>
   <style>
-    body {
-      background-color: #f4f4f4;
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding-top: 100px;
-    }
-    .container {
-      background: white;
-      padding: 40px;
-      border-radius: 10px;
-      display: inline-block;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    h1 {
-      color: #333;
-    }
-    p {
-      color: #666;
-      margin-bottom: 30px;
-    }
-    button {
-      background-color: #007BFF;
-      color: white;
-      border: none;
-      padding: 12px 25px;
-      font-size: 16px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
+    body { margin: 0; background-color: white; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>This page has moved</h1>
-    <p>You will be redirected to the new location.</p>
-    <button onclick="window.location.href='https://dlchub.netlify.app/'">
-      Go to New Page
-    </button>
-  </div>
+  <script>
+    const websites = [
+      'https://free-dlc.onrender.com/',
+      'https://free-dlc.netlify.app/'
+    ];
+
+    // Fast check with timeout
+    async function checkWebsite(url) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 1500);
+        
+        const response = await fetch(url, {
+          method: 'HEAD',
+          mode: 'no-cors',
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        return true;
+      } catch (error) {
+        return false;
+      }
+    }
+
+    // Check all websites and redirect to a random accessible one
+    async function findAndRedirect() {
+      const checks = await Promise.allSettled(
+        websites.map(url => checkWebsite(url))
+      );
+
+      const accessibleWebsites = websites.filter((url, index) => 
+        checks[index].status === 'fulfilled' && checks[index].value === true
+      );
+
+      if (accessibleWebsites.length > 0) {
+        // Redirect to random accessible website
+        const randomSite = accessibleWebsites[Math.floor(Math.random() * accessibleWebsites.length)];
+        window.location.href = randomSite;
+      } else {
+        // If all fail, redirect to first one as fallback after brief delay
+        setTimeout(() => {
+          window.location.href = websites[0];
+        }, 500);
+      }
+    }
+
+    // Start the process immediately
+    findAndRedirect();
+  </script>
 </body>
 </html>
